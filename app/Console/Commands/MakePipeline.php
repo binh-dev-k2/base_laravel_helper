@@ -11,20 +11,32 @@ class MakePipeline extends Command
     protected $description = 'Create a new Pipeline step class';
 
     public function handle()
-    {
-        $name = $this->argument('name');
-        $className = str($name)->studly()->value();
-        $path = app_path("Pipelines/{$className}.php");
+{
+    $name = str($this->argument('name'))->studly()->value();
 
-        if (File::exists($path)) {
-            $this->error('Pipeline class already exists!');
-            return;
-        }
+    // Tách path và class
+    $pathParts = explode('/', $name);
+    $className = array_pop($pathParts);
+    $subPath = implode('/', $pathParts);
+    $namespacePath = implode('\\', $pathParts);
 
-        $stub = <<<EOT
+    // Đường dẫn vật lý
+    $directory = app_path('Pipelines/' . $subPath);
+    $filePath = $directory . '/' . $className . '.php';
+
+    if (File::exists($filePath)) {
+        $this->error("❌ Pipeline '{$className}' already exists.");
+        return;
+    }
+
+    File::ensureDirectoryExists($directory);
+
+    $namespace = 'App\\Pipelines' . ($namespacePath ? '\\' . $namespacePath : '');
+
+    $template = <<<EOT
 <?php
 
-namespace App\Pipelines;
+namespace {$namespace};
 
 use Closure;
 
@@ -39,9 +51,9 @@ class {$className}
 }
 EOT;
 
-        File::ensureDirectoryExists(app_path('Pipelines'));
-        File::put($path, $stub);
+    File::put($filePath, $template);
 
-        $this->info("Pipeline class [{$className}] created successfully at app/Pipelines.");
-    }
+    $this->info("✅ Pipeline '{$className}' created at app/Pipelines/{$subPath}");
+}
+
 }
