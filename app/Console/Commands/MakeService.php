@@ -5,54 +5,45 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
-class MakePipeline extends Command
+class MakeService extends Command
 {
-    protected $signature = 'make:pipeline {name}';
-    protected $description = 'Create a new Pipeline step class';
+    protected $signature = 'make:service {name}';
+    protected $description = 'Create a new Service class';
 
     public function handle()
     {
         $name = str($this->argument('name'))->studly()->value();
 
-        // Tách path và class
         $pathParts = explode('/', $name);
         $className = array_pop($pathParts);
         $subPath = implode('/', $pathParts);
         $namespacePath = implode('\\', $pathParts);
 
-        // Đường dẫn vật lý
-        $directory = app_path('Pipelines/' . $subPath);
+        $directory = app_path('Services/' . $subPath);
         $filePath = $directory . '/' . $className . '.php';
 
         if (File::exists($filePath)) {
-            $this->error("❌ Pipeline '{$className}' already exists.");
+            $this->error("❌ Service '{$className}' already exists.");
             return;
         }
 
         File::ensureDirectoryExists($directory);
 
-        $namespace = 'App\\Pipelines' . ($namespacePath ? '\\' . $namespacePath : '');
+        $namespace = 'App\\Services' . ($namespacePath ? '\\' . $namespacePath : '');
 
         $template = <<<EOT
 <?php
 
 namespace {$namespace};
 
-use Closure;
-
 class {$className}
 {
-    public function handle(\$payload, Closure \$next)
-    {
-        // TODO: implement logic here
-
-        return \$next(\$payload);
-    }
+    // Implement your service methods here
 }
 EOT;
 
         File::put($filePath, $template);
 
-        $this->info("✅ Pipeline '{$className}' created at app/Pipelines/{$subPath}");
+        $this->info("✅ Service '{$className}' created at app/Services/{$subPath}");
     }
 }

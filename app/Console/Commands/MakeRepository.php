@@ -5,10 +5,10 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
-class MakePipeline extends Command
+class MakeRepository extends Command
 {
-    protected $signature = 'make:pipeline {name}';
-    protected $description = 'Create a new Pipeline step class';
+    protected $signature = 'make:repository {name}';
+    protected $description = 'Create a new Repository class';
 
     public function handle()
     {
@@ -21,38 +21,31 @@ class MakePipeline extends Command
         $namespacePath = implode('\\', $pathParts);
 
         // Đường dẫn vật lý
-        $directory = app_path('Pipelines/' . $subPath);
+        $directory = app_path('Repositories/' . $subPath);
         $filePath = $directory . '/' . $className . '.php';
 
         if (File::exists($filePath)) {
-            $this->error("❌ Pipeline '{$className}' already exists.");
+            $this->error("❌ Repository '{$className}' already exists.");
             return;
         }
 
         File::ensureDirectoryExists($directory);
 
-        $namespace = 'App\\Pipelines' . ($namespacePath ? '\\' . $namespacePath : '');
+        $namespace = 'App\\Repositories' . ($namespacePath ? '\\' . $namespacePath : '');
 
         $template = <<<EOT
 <?php
 
 namespace {$namespace};
 
-use Closure;
-
 class {$className}
 {
-    public function handle(\$payload, Closure \$next)
-    {
-        // TODO: implement logic here
-
-        return \$next(\$payload);
-    }
+    // Implement repository methods here
 }
 EOT;
 
         File::put($filePath, $template);
 
-        $this->info("✅ Pipeline '{$className}' created at app/Pipelines/{$subPath}");
+        $this->info("✅ Repository '{$className}' created at app/Repositories/{$subPath}");
     }
 }
